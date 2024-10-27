@@ -1,7 +1,7 @@
 use ratatui::{
     layout::Constraint,
     style::{Style, Stylize},
-    widgets::{Cell, Row, StatefulWidget, Table, TableState},
+    widgets::{Block, Cell, Row, StatefulWidget, Table, TableState},
 };
 use sqlx::PgPool;
 
@@ -10,7 +10,6 @@ use crate::{db::getters::get_uncompleted_todos, models::Todo};
 #[derive(Debug)]
 pub struct TodosTableWidget<'a> {
     pub todos: Vec<Todo>,
-    pub todos_state: TableState,
     pub todos_table: Table<'a>,
 }
 
@@ -27,8 +26,8 @@ impl StatefulWidget for &TodosTableWidget<'_> {
 }
 
 impl TodosTableWidget<'_> {
-    pub async fn populate_table(&mut self, db: &PgPool) {
-        self.todos = get_uncompleted_todos(db).await;
+    pub async fn populate_table(&mut self, db: &PgPool) -> Result<(), sqlx::Error> {
+        self.todos = get_uncompleted_todos(db).await?;
         let rows = self
             .todos
             .iter()
@@ -45,13 +44,17 @@ impl TodosTableWidget<'_> {
             })
             .collect::<Vec<Row>>();
         let widths = Constraint::from_percentages([10, 80, 10]);
-        self.todos_table = Table::new(rows, widths).highlight_style(Style::default().reversed());
+        self.todos_table = Table::new(rows, widths)
+            .block(Block::bordered().title("Todos"))
+            .row_highlight_style(Style::default().reversed())
+            .highlight_symbol("󰚌 ");
+
+        Ok(())
     }
 
     pub fn new() -> Self {
         Self {
             todos: vec![],
-            todos_state: TableState::new(),
             todos_table: Table::default(),
         }
     }

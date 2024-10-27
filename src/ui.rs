@@ -1,20 +1,20 @@
 use crate::app::App;
 use crate::models::InputMode;
-use crate::widgets::TodosTableWidget;
-use ratatui::layout::{Alignment, Constraint, Layout, Position};
+use ratatui::layout::{Constraint, Layout, Position};
 use ratatui::style::{Color, Modifier, Style, Stylize};
-use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, List, ListItem, ListState, Paragraph, StatefulWidget};
+use ratatui::text::{Line, Text};
+use ratatui::widgets::{Block, Paragraph, StatefulWidget, Wrap};
 use ratatui::Frame;
 
 pub fn render(app: &mut App, frame: &mut Frame) {
     let vertical = Layout::vertical([
         Constraint::Length(1),
-        Constraint::Length(2),
-        Constraint::Min(2),
+        Constraint::Length(3),
+        Constraint::Min(1),
+        Constraint::Length(3),
     ]);
 
-    let [help_area, input_area, todos_table_area] = vertical.areas(frame.area());
+    let [help_area, input_area, todos_table_area, errors_area] = vertical.areas(frame.area());
 
     let (msg, style) = match app.input_mode {
         InputMode::Normal => (
@@ -80,28 +80,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     //
     // frame.render_stateful_widget(todos, todos_area, &mut app.todos_state);
     let buf = frame.buffer_mut();
-    let mut table_state = app.todos_table.todos_state.clone();
+    // let mut table_state = app.todos_state.clone();
     app.todos_table
-        .render(todos_table_area, buf, &mut table_state);
+        .render(todos_table_area, buf, &mut app.todos_state);
 
-    // frame.render_widget(
-    //     Paragraph::new(format!(
-    //         "This is a tui template. \n\
-    //             Press `Esc`, `Ctrl-C` or `q` to stop running.\n\
-    //             Press left and right to increment and decrement the counter respectively.\n\
-    //             Counter: {}\n\
-    //             Also the todos are: {:?}",
-    //         app.counter,
-    //         app.todos,
-    //     ))
-    //         .block(
-    //             Block::bordered()
-    //                 .title("Template")
-    //                 .title_alignment(Alignment::Center)
-    //                 .border_type(BorderType::Rounded),
-    //         )
-    //         .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-    //         .centered(),
-    //     frame.area(),
-    // )
+    let error_text = Text::from(Line::from(app.errors.clone())).patch_style(Style::default().red());
+    let error_message = Paragraph::new(error_text).wrap(Wrap { trim: false });
+    frame.render_widget(error_message, errors_area);
 }

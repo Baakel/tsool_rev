@@ -1,8 +1,8 @@
 use crate::db::getters::{get_all_todos, get_uncompleted_todos};
-use crate::db::setters::{mark_todo_done, save_todo};
+use crate::db::setters::{mark_todo_done, mark_todo_undone, save_todo};
 use crate::models::{Goal, InputMode, Todo};
 use crate::widgets::TodosTableWidget;
-use ratatui::widgets::ListState;
+use ratatui::widgets::TableState;
 use sqlx::PgPool;
 
 pub type AppResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -16,8 +16,9 @@ pub struct App<'a> {
     pub input: String,
     pub character_index: usize,
     pub input_mode: InputMode,
-    pub todos_state: ListState,
+    pub todos_state: TableState,
     pub todos_table: TodosTableWidget<'a>,
+    pub errors: String,
 }
 
 // impl Default for App {
@@ -35,6 +36,14 @@ pub struct App<'a> {
 impl App<'_> {
     pub async fn new(db: PgPool) -> Self {
         let todos = get_uncompleted_todos(&db).await;
+        let mut errors = String::new();
+        let todos = match todos {
+            Ok(t) => t,
+            Err(e) => {
+                errors = e.to_string();
+                vec![]
+            }
+        };
         Self {
             running: true,
             todos,
@@ -43,8 +52,9 @@ impl App<'_> {
             input: String::new(),
             character_index: 0,
             input_mode: InputMode::Normal,
-            todos_state: ListState::default(),
+            todos_state: TableState::default(),
             todos_table: TodosTableWidget::new(),
+            errors,
         }
     }
 
@@ -120,15 +130,18 @@ impl App<'_> {
         self.todos_state.select_previous();
     }
 
-    pub async fn mark_done(&mut self) {
-        let todo_id = match self.todos_state.selected() {
+    pub async fn toggle_todo(&mut self) {
+        let todo_index = match self.todos_state.selected() {
             Some(i) => i,
             None => return,
         };
 
-        let res = mark_todo_done(&self.db, todo_id as i64).await;
-        if res.is_err() {
-            println!("Error while marking todo as done: {:?}", res.err().unwrap());
+        let row = self.todos.get(todo_index);
+        if let Some(todo) = row {
+            match todo.done {
+                None => mark_todo_done(&self.db, todo.id).await.unwrap(),
+                Some(_) => mark_todo_undone(&self.db, todo.id).await.unwrap(),
+            }
         }
     }
 
