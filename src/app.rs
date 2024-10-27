@@ -1,20 +1,23 @@
-use sqlx::PgPool;
-use crate::db::getters::get_all_todos;
-use crate::db::setters::save_todo;
+use crate::db::getters::{get_all_todos, get_uncompleted_todos};
+use crate::db::setters::{mark_todo_done, save_todo};
 use crate::models::{Goal, InputMode, Todo};
+use crate::widgets::TodosTableWidget;
+use ratatui::widgets::ListState;
+use sqlx::PgPool;
 
 pub type AppResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     pub running: bool,
-    pub counter: u8,
     pub todos: Vec<Todo>,
     pub goals: Vec<Goal>,
     pub db: PgPool,
     pub input: String,
     pub character_index: usize,
     pub input_mode: InputMode,
+    pub todos_state: ListState,
+    pub todos_table: TodosTableWidget<'a>,
 }
 
 // impl Default for App {
@@ -29,17 +32,19 @@ pub struct App {
 //     }
 // }
 
-impl App {
-    pub fn new(db: PgPool) -> Self {
+impl App<'_> {
+    pub async fn new(db: PgPool) -> Self {
+        let todos = get_uncompleted_todos(&db).await;
         Self {
             running: true,
-            counter: 0,
-            todos: vec![],
+            todos,
             goals: vec![],
             db,
             input: String::new(),
             character_index: 0,
             input_mode: InputMode::Normal,
+            todos_state: ListState::default(),
+            todos_table: TodosTableWidget::new(),
         }
     }
 
@@ -49,20 +54,8 @@ impl App {
         self.running = false;
     }
 
-    pub fn increment_counter(&mut self) {
-        if let Some(res) = self.counter.checked_add(1) {
-            self.counter = res;
-        }
-    }
-
     pub async fn populate_todos(&mut self) {
         self.todos = get_all_todos(&self.db).await;
-    }
-
-    pub fn decrement_counter(&mut self) {
-        if let Some(res) = self.counter.checked_sub(1) {
-            self.counter = res;
-        }
     }
 
     pub fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
@@ -99,7 +92,7 @@ impl App {
             let current_index = self.character_index;
             let from_left_to_current_index = current_index - 1;
 
-            let  before_char_to_delete = self.input.chars().take(from_left_to_current_index);
+            let before_char_to_delete = self.input.chars().take(from_left_to_current_index);
             let after_char_to_delete = self.input.chars().skip(current_index);
 
             self.input = before_char_to_delete.chain(after_char_to_delete).collect();
@@ -118,4 +111,28 @@ impl App {
         self.input.clear();
         self.reset_cursor();
     }
+
+    pub fn select_next_todo(&mut self) {
+        self.todos_state.select_next();
+    }
+
+    pub fn select_prev_todo(&mut self) {
+        self.todos_state.select_previous();
+    }
+
+    pub async fn mark_done(&mut self) {
+        let todo_id = match self.todos_state.selected() {
+            Some(i) => i,
+            None => return,
+        };
+
+        let res = mark_todo_done(&self.db, todo_id as i64).await;
+        if res.is_err() {
+            println!("Error while marking todo as done: {:?}", res.err().unwrap());
+        }
+    }
+
+    // pub fn render_list(&) {
+    //
+    // }
 }

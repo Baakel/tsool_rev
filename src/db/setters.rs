@@ -1,6 +1,6 @@
+use crate::models::{Goal, Todo};
 use chrono::Utc;
 use sqlx::PgPool;
-use crate::models::{Goal, Todo};
 
 pub async fn save_todo(db: &PgPool, todo: Todo) -> Result<(), sqlx::Error> {
     sqlx::query!(
@@ -9,8 +9,8 @@ pub async fn save_todo(db: &PgPool, todo: Todo) -> Result<(), sqlx::Error> {
         todo.done,
         Utc::now()
     )
-        .execute(db)
-        .await?;
+    .execute(db)
+    .await?;
     Ok(())
 }
 
@@ -21,8 +21,8 @@ pub async fn save_goal(db: &PgPool, goal: Goal) -> Result<(), sqlx::Error> {
         goal.done,
         goal.goal_date,
     )
-        .execute(db)
-        .await?;
+    .execute(db)
+    .await?;
     Ok(())
 }
 
@@ -32,8 +32,8 @@ pub async fn mark_todo_done(db: &PgPool, todo_id: i64) -> Result<(), sqlx::Error
         Some(Utc::now()),
         todo_id,
     )
-        .execute(db)
-        .await?;
+    .execute(db)
+    .await?;
     Ok(())
 }
 
@@ -43,7 +43,18 @@ pub async fn mark_goal_done(db: &PgPool, goal_id: i64) -> Result<(), sqlx::Error
         Some(Utc::now()),
         goal_id,
     )
-        .execute(db)
-        .await?;
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+
+pub async fn mark_todo_undone(db: &PgPool, todo_id: i64) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "UPDATE todos SET done = NULL WHERE id = $1",
+        todo_id,
+    )
+    .execute(db)
+    .await?;
     Ok(())
 }

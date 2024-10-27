@@ -1,5 +1,5 @@
 [package]
-name = "tsool_new"
+name = "tsool"
 version = "0.1.0"
 edition = "2021"
 

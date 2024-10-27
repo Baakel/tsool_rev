@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use sqlx::FromRow;
+use std::fmt;
 
 #[derive(Debug, FromRow)]
 pub struct Todo {
@@ -32,4 +33,14 @@ pub struct Goal {
 pub enum InputMode {
     Editing,
     Normal,
+}
+
+impl fmt::Display for Todo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let done_status = match self.done {
+            None => '󰄱',
+            Some(_) => '󰡖',
+        };
+        write!(f, "{} {}", self.value, done_status)
+    }
 }

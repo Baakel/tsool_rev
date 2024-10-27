@@ -1,9 +1,9 @@
-use std::time::Duration;
+use crate::app::AppResult;
+use crossterm::event::Event as CrosstermEvent;
 use futures::{FutureExt, StreamExt};
 use ratatui::crossterm::event::{EventStream, KeyEvent, MouseEvent};
-use crossterm::event::{Event as CrosstermEvent};
+use std::time::Duration;
 use tokio::sync::mpsc;
-use crate::app::AppResult;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Event {
@@ -78,3 +78,4 @@ impl EventHandler {
             )))
     }
 }
+
