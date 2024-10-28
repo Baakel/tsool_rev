@@ -35,18 +35,18 @@ pub struct App<'a> {
 
 impl App<'_> {
     pub async fn new(db: PgPool) -> Self {
-        let todos = get_uncompleted_todos(&db).await;
-        let mut errors = String::new();
-        let todos = match todos {
-            Ok(t) => t,
-            Err(e) => {
-                errors = e.to_string();
-                vec![]
-            }
-        };
+        // let todos = get_uncompleted_todos(&db).await;
+        // let mut errors = String::new();
+        // let todos = match todos {
+        //     Ok(t) => t,
+        //     Err(e) => {
+        //         errors = e.to_string();
+        //         vec![]
+        //     }
+        // };
         Self {
             running: true,
-            todos,
+            todos: vec![],
             goals: vec![],
             db,
             input: String::new(),
@@ -54,7 +54,7 @@ impl App<'_> {
             input_mode: InputMode::Normal,
             todos_state: TableState::default(),
             todos_table: TodosTableWidget::new(),
-            errors,
+            errors: String::new(),
         }
     }
 
@@ -62,10 +62,6 @@ impl App<'_> {
 
     pub fn quit(&mut self) {
         self.running = false;
-    }
-
-    pub async fn populate_todos(&mut self) {
-        self.todos = get_all_todos(&self.db).await;
     }
 
     pub fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
@@ -117,9 +113,10 @@ impl App<'_> {
     pub async fn save_todo(&mut self) {
         let todo = Todo::new(self.input.clone());
         save_todo(&self.db, todo).await.unwrap();
-        self.todos = get_all_todos(&self.db).await;
+        self.reload_todos().await;
         self.input.clear();
         self.reset_cursor();
+        self.todos_state = TableState::default();
     }
 
     pub fn select_next_todo(&mut self) {
@@ -136,7 +133,7 @@ impl App<'_> {
             None => return,
         };
 
-        let row = self.todos.get(todo_index);
+        let row = self.todos_table.todos.get(todo_index);
         if let Some(todo) = row {
             match todo.done {
                 None => mark_todo_done(&self.db, todo.id).await.unwrap(),
@@ -145,6 +142,19 @@ impl App<'_> {
         }
     }
 
+    pub async fn reload_todos(&mut self) {
+        let todos = get_uncompleted_todos(&self.db).await;
+        let mut errors = String::new();
+        let todos = match todos {
+            Ok(t) => t,
+            Err(e) => {
+                errors = e.to_string();
+                vec![]
+            }
+        };
+        self.errors = errors;
+        self.todos_table.todos = todos;
+    }
     // pub fn render_list(&) {
     //
     // }

@@ -26,8 +26,8 @@ impl StatefulWidget for &TodosTableWidget<'_> {
 }
 
 impl TodosTableWidget<'_> {
-    pub async fn populate_table(&mut self, db: &PgPool) -> Result<(), sqlx::Error> {
-        self.todos = get_uncompleted_todos(db).await?;
+    pub fn populate_table(&mut self) {
+        // self.todos = get_uncompleted_todos(db).await?;
         let rows = self
             .todos
             .iter()
@@ -49,7 +49,7 @@ impl TodosTableWidget<'_> {
             .row_highlight_style(Style::default().reversed())
             .highlight_symbol("󰚌 ");
 
-        Ok(())
+        // Ok(())
     }
 
     pub fn new() -> Self {

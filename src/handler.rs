@@ -1,5 +1,4 @@
 use crate::app::{App, AppResult};
-use crate::db::getters::get_uncompleted_todos;
 use crate::models::InputMode;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -22,17 +21,9 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App<'_>) -> AppRes
                 app.select_prev_todo();
             }
             KeyCode::Enter => {
-                app.todos = match get_uncompleted_todos(&app.db).await {
-                    Err(e) => {
-                        app.errors = e.to_string();
-                        vec![]
-                    }
-                    Ok(t) => t,
-                };
                 app.toggle_todo().await;
-                if let Err(e) = app.todos_table.populate_table(&app.db).await {
-                    app.errors = e.to_string();
-                };
+                app.reload_todos().await;
+                app.todos_table.populate_table();
             }
             _ => {}
         },
@@ -49,7 +40,10 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App<'_>) -> AppRes
                     app.reset_cursor();
                     app.input_mode = InputMode::Normal
                 }
-                KeyCode::Enter => app.save_todo().await,
+                KeyCode::Enter => {
+                    app.save_todo().await;
+                    app.todos_table.populate_table();
+                }
                 KeyCode::Char(to_insert) => app.enter_char(to_insert),
                 KeyCode::Backspace => app.delete_char(),
                 // KeyCode::Char('l') => {

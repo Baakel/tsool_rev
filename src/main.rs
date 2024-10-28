@@ -21,7 +21,8 @@ async fn main() -> AppResult<()> {
     dotenvy::dotenv().ok();
     let db = start_db().await?;
     let mut app = App::new(db).await;
-    app.todos_table.populate_table(&app.db).await.unwrap();
+    app.reload_todos().await;
+    app.todos_table.populate_table();
 
     let backend = CrosstermBackend::new(io::stdout());
     let terminal = Terminal::new(backend)?;
