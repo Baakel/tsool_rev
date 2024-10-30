@@ -1,7 +1,8 @@
-use crate::db::getters::{get_all_todos, get_uncompleted_todos};
+use crate::db::getters::get_uncompleted_todos;
 use crate::db::setters::{mark_todo_done, mark_todo_undone, save_todo};
 use crate::models::{Goal, InputMode, Todo};
-use crate::widgets::TodosTableWidget;
+use crate::widgets::goals::GoalsWidget;
+use crate::widgets::todos::TodosTableWidget;
 use ratatui::widgets::TableState;
 use sqlx::PgPool;
 
@@ -11,13 +12,13 @@ pub type AppResult<T> = Result<T, Box<dyn std::error::Error>>;
 pub struct App<'a> {
     pub running: bool,
     pub todos: Vec<Todo>,
-    pub goals: Vec<Goal>,
     pub db: PgPool,
     pub input: String,
     pub character_index: usize,
     pub input_mode: InputMode,
     pub todos_state: TableState,
     pub todos_table: TodosTableWidget<'a>,
+    pub goal_widget: GoalsWidget<'a>,
     pub errors: String,
 }
 
@@ -35,25 +36,16 @@ pub struct App<'a> {
 
 impl App<'_> {
     pub async fn new(db: PgPool) -> Self {
-        // let todos = get_uncompleted_todos(&db).await;
-        // let mut errors = String::new();
-        // let todos = match todos {
-        //     Ok(t) => t,
-        //     Err(e) => {
-        //         errors = e.to_string();
-        //         vec![]
-        //     }
-        // };
         Self {
             running: true,
             todos: vec![],
-            goals: vec![],
             db,
             input: String::new(),
             character_index: 0,
             input_mode: InputMode::Normal,
             todos_state: TableState::default(),
             todos_table: TodosTableWidget::new(),
+            goal_widget: GoalsWidget::new(),
             errors: String::new(),
         }
     }

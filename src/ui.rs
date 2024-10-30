@@ -3,18 +3,20 @@ use crate::models::InputMode;
 use ratatui::layout::{Constraint, Layout, Position};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Text};
-use ratatui::widgets::{Block, Paragraph, StatefulWidget, Wrap};
+use ratatui::widgets::{Block, Paragraph, StatefulWidget, Widget, Wrap};
 use ratatui::Frame;
 
 pub fn render(app: &mut App, frame: &mut Frame) {
     let vertical = Layout::vertical([
         Constraint::Length(1),
         Constraint::Length(3),
+        Constraint::Length(3),
         Constraint::Min(1),
         Constraint::Length(3),
     ]);
 
-    let [help_area, input_area, todos_table_area, errors_area] = vertical.areas(frame.area());
+    let [help_area, input_area, goals_area, todos_table_area, errors_area] =
+        vertical.areas(frame.area());
 
     let (msg, style) = match app.input_mode {
         InputMode::Normal => (
@@ -83,6 +85,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     // let mut table_state = app.todos_state.clone();
     app.todos_table
         .render(todos_table_area, buf, &mut app.todos_state);
+
+    app.goal_widget.render(goals_area, buf);
 
     let error_text = Text::from(Line::from(app.errors.clone())).patch_style(Style::default().red());
     let error_message = Paragraph::new(error_text).wrap(Wrap { trim: false });

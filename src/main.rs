@@ -23,6 +23,7 @@ async fn main() -> AppResult<()> {
     let mut app = App::new(db).await;
     app.reload_todos().await;
     app.todos_table.populate_table();
+    app.goal_widget.populate_goal();
 
     let backend = CrosstermBackend::new(io::stdout());
     let terminal = Terminal::new(backend)?;
