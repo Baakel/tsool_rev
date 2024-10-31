@@ -1,6 +1,6 @@
 use crate::db::getters::get_uncompleted_todos;
-use crate::db::setters::{mark_todo_done, mark_todo_undone, save_todo};
-use crate::models::{Goal, InputMode, Todo};
+use crate::db::setters::{mark_todo_done, mark_todo_undone, save_goal, save_todo};
+use crate::models::{Goal, InputMode, InputType, Todo};
 use crate::widgets::goals::GoalsWidget;
 use crate::widgets::todos::TodosTableWidget;
 use ratatui::widgets::TableState;
@@ -11,11 +11,11 @@ pub type AppResult<T> = Result<T, Box<dyn std::error::Error>>;
 #[derive(Debug)]
 pub struct App<'a> {
     pub running: bool,
-    pub todos: Vec<Todo>,
     pub db: PgPool,
     pub input: String,
     pub character_index: usize,
     pub input_mode: InputMode,
+    pub input_type: InputType,
     pub todos_state: TableState,
     pub todos_table: TodosTableWidget<'a>,
     pub goal_widget: GoalsWidget<'a>,
@@ -38,11 +38,11 @@ impl App<'_> {
     pub async fn new(db: PgPool) -> Self {
         Self {
             running: true,
-            todos: vec![],
             db,
             input: String::new(),
             character_index: 0,
             input_mode: InputMode::Normal,
+            input_type: InputType::Todo,
             todos_state: TableState::default(),
             todos_table: TodosTableWidget::new(),
             goal_widget: GoalsWidget::new(),
@@ -109,6 +109,13 @@ impl App<'_> {
         self.input.clear();
         self.reset_cursor();
         self.todos_state = TableState::default();
+    }
+
+    pub async fn save_goal(&mut self) {
+        let goal = Goal::new(self.input.clone());
+        save_goal(&self.db, goal).await.unwrap();
+        self.input.clear();
+        self.reset_cursor();
     }
 
     pub fn select_next_todo(&mut self) {

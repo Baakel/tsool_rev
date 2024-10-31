@@ -1,5 +1,5 @@
 use crate::app::{App, AppResult};
-use crate::models::InputMode;
+use crate::models::{InputMode, InputType};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub async fn handle_key_events(key_event: KeyEvent, app: &mut App<'_>) -> AppResult<()> {
@@ -40,10 +40,16 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App<'_>) -> AppRes
                     app.reset_cursor();
                     app.input_mode = InputMode::Normal
                 }
-                KeyCode::Enter => {
-                    app.save_todo().await;
-                    app.todos_table.populate_table();
-                }
+                KeyCode::Enter => match app.input_type {
+                    InputType::Todo => {
+                        app.save_todo().await;
+                        app.todos_table.populate_table();
+                    }
+                    InputType::Goal => {
+                        app.save_goal().await;
+                    }
+                    _ => {}
+                },
                 KeyCode::Char(to_insert) => app.enter_char(to_insert),
                 KeyCode::Backspace => app.delete_char(),
                 // KeyCode::Char('l') => {

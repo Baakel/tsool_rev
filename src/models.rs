@@ -29,10 +29,29 @@ pub struct Goal {
     pub goal_date: DateTime<Utc>,
 }
 
+impl Goal {
+    pub fn new(value: String) -> Self {
+        Self {
+            id: 0,
+            value,
+            done: None,
+            goal_date: Utc::now(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum InputMode {
     Editing,
     Normal,
+}
+
+#[derive(Debug)]
+pub enum InputType {
+    Todo,
+    Goal,
+    Daily,
+    Weekly,
 }
 
 impl fmt::Display for Todo {
