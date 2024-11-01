@@ -31,15 +31,24 @@ impl TodosTableWidget<'_> {
             .todos
             .iter()
             .map(|todo| {
+                let mut done_style = Style::default();
                 let done_char = match todo.done {
                     None => '󰄱',
-                    Some(_) => '󰡖',
+                    Some(_) => {
+                        done_style = done_style.dim();
+                        '󰡖'
+                    }
                 };
                 Row::new(vec![
                     Cell::new(todo.id.to_string()),
-                    Cell::new(todo.value.clone()),
+                    Cell::new(todo.value.clone()).style(if todo.done.is_some() {
+                        done_style.crossed_out()
+                    } else {
+                        done_style
+                    }),
                     Cell::new(done_char.to_string()),
                 ])
+                .style(done_style)
             })
             .collect::<Vec<Row>>();
         let widths = Constraint::from_percentages([5, 85, 10]);
@@ -51,7 +60,7 @@ impl TodosTableWidget<'_> {
                     Cell::from("Value"),
                     Cell::from("Done"),
                 ])
-                .style(Style::default().reversed()),
+                .style(Style::default().underlined()),
             )
             .row_highlight_style(Style::default().reversed())
             .highlight_symbol("󰚌 ");

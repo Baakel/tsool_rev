@@ -1,8 +1,9 @@
-use crate::db::getters::get_uncompleted_todos;
-use crate::db::setters::{mark_todo_done, mark_todo_undone, save_goal, save_todo};
+use crate::db::getters::{get_todays_goal, get_uncompleted_todos};
+use crate::db::setters::{mark_goal_done, mark_todo_done, mark_todo_undone, save_goal, save_todo};
 use crate::models::{Goal, InputMode, InputType, Todo};
 use crate::widgets::goals::GoalsWidget;
 use crate::widgets::todos::TodosTableWidget;
+use chrono::Utc;
 use ratatui::widgets::TableState;
 use sqlx::PgPool;
 
@@ -116,6 +117,17 @@ impl App<'_> {
         save_goal(&self.db, goal).await.unwrap();
         self.input.clear();
         self.reset_cursor();
+    }
+
+    pub async fn get_todays_goal(&mut self) {
+        self.goal_widget.goal = get_todays_goal(&self.db).await.unwrap();
+    }
+
+    pub async fn complete_goal(&mut self) {
+        self.goal_widget.goal.done = Some(Utc::now());
+        mark_goal_done(&self.db, self.goal_widget.goal.id)
+            .await
+            .unwrap();
     }
 
     pub fn select_next_todo(&mut self) {

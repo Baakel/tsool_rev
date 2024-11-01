@@ -21,6 +21,7 @@ async fn main() -> AppResult<()> {
     dotenvy::dotenv().ok();
     let db = start_db().await?;
     let mut app = App::new(db).await;
+    app.get_todays_goal().await;
     app.reload_todos().await;
     app.todos_table.populate_table();
     app.goal_widget.populate_goal();

@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::models::InputMode;
+use crate::models::{InputMode, InputType};
 use ratatui::layout::{Constraint, Layout, Position};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Text};
@@ -48,9 +48,17 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     let input = Paragraph::new(app.input.as_str())
         .style(match app.input_mode {
             InputMode::Normal => Style::default(),
-            InputMode::Editing => Style::default().fg(Color::Green),
+            InputMode::Editing => match app.input_type {
+                InputType::Goal => Style::default().fg(Color::Yellow),
+                InputType::Todo => Style::default().fg(Color::Green),
+                _ => Style::default().fg(Color::Magenta),
+            },
         })
-        .block(Block::bordered().title("Add a new todo"));
+        .block(match app.input_type {
+            InputType::Goal => Block::bordered().title("Add today's goal"),
+            InputType::Todo => Block::bordered().title("Add a new todo"),
+            _ => Block::bordered().title("Add a new something"),
+        });
     frame.render_widget(input, input_area);
 
     match app.input_mode {

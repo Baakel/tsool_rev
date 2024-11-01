@@ -25,8 +25,14 @@ impl Widget for &GoalsWidget<'_> {
 impl GoalsWidget<'_> {
     pub fn populate_goal(&mut self) {
         let text = Text::from(self.goal.value.clone()).bold();
-        let paragraph =
-            Paragraph::new(text).block(Block::bordered().title("Today's goal").yellow());
+        let paragraph = match self.goal.done {
+            Some(_) => Paragraph::new(text).block(
+                Block::bordered()
+                    .title("Congratulations! Great Job!")
+                    .on_yellow(),
+            ),
+            None => Paragraph::new(text).block(Block::bordered().title("Today's goal").yellow()),
+        };
         self.goal_para = paragraph;
     }
 
@@ -34,11 +40,17 @@ impl GoalsWidget<'_> {
         Self {
             goal: Goal {
                 id: 0,
-                value: String::from("Some valid goal!"),
+                value: String::new(),
                 done: None,
                 goal_date: Utc::now(),
             },
             goal_para: Paragraph::default(),
         }
+    }
+}
+
+impl Default for GoalsWidget<'_> {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -13,7 +13,19 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App<'_>) -> AppRes
                     app.quit();
                 }
             }
-            KeyCode::Char('n') | KeyCode::Char('N') => app.input_mode = InputMode::Editing,
+            KeyCode::Char('n') | KeyCode::Char('N') => {
+                app.input_type = InputType::Todo;
+                app.input_mode = InputMode::Editing;
+            }
+            KeyCode::Char('g') | KeyCode::Char('G') => {
+                if key_event.modifiers == KeyModifiers::ALT {
+                    app.complete_goal().await;
+                    app.goal_widget.populate_goal();
+                    return Ok(());
+                }
+                app.input_type = InputType::Goal;
+                app.input_mode = InputMode::Editing;
+            }
             KeyCode::Down | KeyCode::Char('j') => {
                 app.select_next_todo();
             }
@@ -47,6 +59,10 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App<'_>) -> AppRes
                     }
                     InputType::Goal => {
                         app.save_goal().await;
+                        app.get_todays_goal().await;
+                        app.goal_widget.populate_goal();
+                        app.input_mode = InputMode::Normal;
+                        app.input_type = InputType::Todo;
                     }
                     _ => {}
                 },
