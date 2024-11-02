@@ -3,11 +3,13 @@ use crate::db::start_db;
 use crate::events::{Event, EventHandler};
 use crate::handler::handle_key_events;
 use crate::tui::Tui;
+use config::init_configs;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use std::io;
 
 mod app;
+mod config;
 mod db;
 mod events;
 mod handler;
@@ -19,6 +21,7 @@ mod widgets;
 #[tokio::main]
 async fn main() -> AppResult<()> {
     dotenvy::dotenv().ok();
+    init_configs();
     let db = start_db().await?;
     let mut app = App::new(db).await;
     app.get_todays_goal().await;
