@@ -22,6 +22,27 @@ impl Todo {
 }
 
 #[derive(Debug, FromRow)]
+pub struct Daily {
+    pub id: i64,
+    pub value: String,
+    pub done: bool,
+    pub created: DateTime<Utc>,
+    pub streak: i32,
+}
+
+impl Daily {
+    pub fn new(value: String) -> Self {
+        Self {
+            id: 0,
+            value,
+            done: false,
+            created: Utc::now(),
+            streak: 0,
+        }
+    }
+}
+
+#[derive(Debug, FromRow)]
 pub struct Goal {
     pub id: i64,
     pub value: String,

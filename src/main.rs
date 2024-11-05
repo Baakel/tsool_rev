@@ -28,6 +28,7 @@ async fn main() -> AppResult<()> {
     app.reload_todos().await;
     app.todos_table.populate_table();
     app.goal_widget.populate_goal();
+    app.dailies_table.populate_dailies();
 
     let backend = CrosstermBackend::new(io::stdout());
     let terminal = Terminal::new(backend)?;

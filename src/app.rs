@@ -1,6 +1,7 @@
 use crate::db::getters::{get_todays_goal, get_uncompleted_todos};
 use crate::db::setters::{mark_goal_done, mark_todo_done, mark_todo_undone, save_goal, save_todo};
 use crate::models::{Goal, InputMode, InputType, Todo};
+use crate::widgets::dailies::DailiesWidget;
 use crate::widgets::goals::GoalsWidget;
 use crate::widgets::todos::TodosTableWidget;
 use chrono::Utc;
@@ -20,6 +21,8 @@ pub struct App<'a> {
     pub todos_state: TableState,
     pub todos_table: TodosTableWidget<'a>,
     pub goal_widget: GoalsWidget<'a>,
+    pub dailies_table: DailiesWidget<'a>,
+    pub dailies_state: TableState,
     pub errors: String,
 }
 
@@ -47,6 +50,8 @@ impl App<'_> {
             todos_state: TableState::default(),
             todos_table: TodosTableWidget::new(),
             goal_widget: GoalsWidget::new(),
+            dailies_table: DailiesWidget::new(),
+            dailies_state: TableState::default(),
             errors: String::new(),
         }
     }

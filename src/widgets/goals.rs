@@ -29,7 +29,8 @@ impl GoalsWidget<'_> {
             Some(_) => Paragraph::new(text).block(
                 Block::bordered()
                     .title("Congratulations! Great Job!")
-                    .on_yellow(),
+                    .light_green()
+                    .reversed(),
             ),
             None => Paragraph::new(text).block(Block::bordered().title("Today's goal").yellow()),
         };

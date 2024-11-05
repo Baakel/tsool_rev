@@ -15,7 +15,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         Constraint::Length(3),
     ]);
 
-    let [help_area, input_area, goals_area, todos_table_area, errors_area] =
+    let [help_area, input_area, goals_area, main_content_area, errors_area] =
         vertical.areas(frame.area());
 
     let (msg, style) = match app.input_mode {
@@ -91,8 +91,14 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     // frame.render_stateful_widget(todos, todos_area, &mut app.todos_state);
     let buf = frame.buffer_mut();
     // let mut table_state = app.todos_state.clone();
+    //
+    let main_content_columns =
+        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]);
+    let [todos_table_area, dailies_area] = main_content_columns.areas(main_content_area);
     app.todos_table
         .render(todos_table_area, buf, &mut app.todos_state);
+    app.dailies_table
+        .render(dailies_area, buf, &mut app.dailies_state);
 
     app.goal_widget.render(goals_area, buf);
 
